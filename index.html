@@ -1,0 +1,720 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Paddock</title>
+<meta name="description" content="A swipe-to-match app for horses — breeding prospects, lease partners and turnout buddies, sorted one card at a time.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Public+Sans:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --ground:#EBEDE7;
+  --surface:#FFFFFF;
+  --surface-2:#F3F5F0;
+  --ink:#141A16;
+  --ink-2:#4B5751;
+  --ink-3:#7C8880;
+  --line:#D5DAD1;
+  --ribbon:#2F52C8;        /* champion blue */
+  --rosette:#C0273E;       /* reserve red */
+  --meadow:#2C6B4F;
+  --brass:#9A7B3F;
+  --shadow:0 18px 40px -22px rgba(20,26,22,.45);
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#101712;
+    --surface:#18211B;
+    --surface-2:#1F2A23;
+    --ink:#EAEFE9;
+    --ink-2:#A7B4AC;
+    --ink-3:#77857D;
+    --line:#2C3830;
+    --ribbon:#7A9BFF;
+    --rosette:#F0748A;
+    --meadow:#63C08F;
+    --brass:#D8B368;
+    --shadow:0 18px 40px -22px rgba(0,0,0,.8);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#101712;
+  --surface:#18211B;
+  --surface-2:#1F2A23;
+  --ink:#EAEFE9;
+  --ink-2:#A7B4AC;
+  --ink-3:#77857D;
+  --line:#2C3830;
+  --ribbon:#7A9BFF;
+  --rosette:#F0748A;
+  --meadow:#63C08F;
+  --brass:#D8B368;
+  --shadow:0 18px 40px -22px rgba(0,0,0,.8);
+  color-scheme:dark;
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  background:var(--ground);
+  color:var(--ink);
+  font-family:"Public Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  font-size:15px;
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+img{max-width:100%}
+button{font:inherit;color:inherit}
+
+.app{
+  min-height:100%;
+  display:flex;
+  flex-direction:column;
+  padding-inline:16px;
+  padding-block:0 calc(12px + env(safe-area-inset-bottom,0px));
+  max-width:520px;
+  margin-inline:auto;
+}
+
+/* ---- masthead ---- */
+.bar{
+  display:flex;align-items:baseline;gap:10px;
+  padding-block:18px 14px;
+  border-bottom:1px solid var(--line);
+}
+.wordmark{
+  font-family:"Fraunces",Georgia,serif;
+  font-weight:700;font-size:26px;letter-spacing:-.01em;
+  margin:0;
+}
+.wordmark .dot{color:var(--ribbon)}
+.tagline{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--ink-3);
+}
+.bar .spacer{margin-left:auto}
+.ghost{
+  background:none;border:1px solid var(--line);border-radius:999px;
+  padding:5px 11px;font-size:12px;cursor:pointer;color:var(--ink-2);
+}
+.ghost:hover{border-color:var(--ink-3);color:var(--ink)}
+.ghost .count{
+  font-family:"IBM Plex Mono",monospace;color:var(--ribbon);font-weight:500;
+}
+
+/* ---- deck ---- */
+.deck-wrap{
+  flex:1;
+  display:flex;flex-direction:column;
+  justify-content:center;
+  padding-block:16px;
+}
+.deck{
+  position:relative;
+  width:100%;
+  height:min(calc(100dvh - 226px), calc(min(100vw - 32px, 488px) * 1.34));
+  min-height:380px;
+}
+.card{
+  position:absolute;inset:0;
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:20px;
+  box-shadow:var(--shadow);
+  overflow:hidden;
+  display:flex;flex-direction:column;
+  touch-action:pan-y;
+  cursor:grab;
+  will-change:transform;
+}
+.card:active{cursor:grabbing}
+.card.behind{pointer-events:none}
+.card.settling{transition:transform .32s cubic-bezier(.22,1,.36,1),opacity .32s ease}
+@media (prefers-reduced-motion: reduce){
+  .card.settling{transition:none}
+}
+
+/* portrait */
+.portrait{
+  position:relative;
+  flex:1 1 auto;
+  min-height:0;
+  background:var(--surface-2);
+  border-bottom:1px solid var(--line);
+  overflow:hidden;
+}
+.portrait svg{position:absolute;inset:0;width:100%;height:100%}
+.ribbon{
+  position:absolute;top:12px;left:12px;
+  display:inline-flex;align-items:center;gap:6px;
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:999px;
+  padding:4px 10px 4px 6px;
+  font-family:"IBM Plex Mono",monospace;
+  font-size:10.5px;letter-spacing:.06em;
+}
+.ribbon i{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--ribbon);display:block;
+}
+.ribbon.res i{background:var(--rosette)}
+.hh{
+  position:absolute;right:12px;bottom:12px;
+  font-family:"IBM Plex Mono",monospace;
+  font-size:11px;
+  color:var(--ink-2);
+  background:color-mix(in srgb, var(--surface) 82%, transparent);
+  border:1px solid var(--line);
+  border-radius:8px;
+  padding:3px 8px;
+  font-variant-numeric:tabular-nums;
+}
+
+/* stamps */
+.stamp{
+  position:absolute;top:26px;
+  font-family:"Fraunces",Georgia,serif;
+  font-weight:700;font-size:26px;letter-spacing:.04em;
+  text-transform:uppercase;
+  padding:6px 14px;border:3px solid;border-radius:10px;
+  opacity:0;pointer-events:none;
+}
+.stamp.yes{right:20px;color:var(--meadow);border-color:var(--meadow);transform:rotate(11deg)}
+.stamp.no{left:20px;color:var(--rosette);border-color:var(--rosette);transform:rotate(-11deg)}
+
+/* dossier */
+.body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:9px}
+.namerow{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.name{
+  font-family:"Fraunces",Georgia,serif;
+  font-weight:700;font-size:21px;line-height:1.1;margin:0;
+  text-wrap:balance;
+}
+.age{font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--ink-3)}
+.barn{
+  font-size:12px;color:var(--ink-3);
+  margin-top:-4px;
+}
+.specs{
+  display:flex;flex-wrap:wrap;gap:4px 6px;
+}
+.spec{
+  font-family:"IBM Plex Mono",monospace;
+  font-size:10.5px;letter-spacing:.03em;
+  border:1px solid var(--line);border-radius:6px;
+  padding:2px 7px;color:var(--ink-2);
+}
+.spec.d{border-color:color-mix(in srgb,var(--ribbon) 40%,var(--line));color:var(--ribbon)}
+.bio{margin:0;font-size:13.5px;color:var(--ink-2);line-height:1.45}
+.bio b{color:var(--ink);font-weight:500}
+.papers{
+  display:flex;justify-content:space-between;gap:10px;
+  border-top:1px dashed var(--line);
+  padding-top:8px;margin-top:auto;
+  font-family:"IBM Plex Mono",monospace;
+  font-size:10px;letter-spacing:.04em;text-transform:uppercase;
+  color:var(--ink-3);
+}
+.papers span{color:var(--ink-2)}
+
+/* empty state */
+.empty{
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:10px;text-align:center;padding:28px;
+  border:1px dashed var(--line);border-radius:20px;
+  color:var(--ink-2);
+}
+.empty h2{font-family:"Fraunces",serif;margin:0;font-size:20px;color:var(--ink)}
+.empty p{margin:0;font-size:13.5px;max-width:30ch}
+
+/* ---- controls ---- */
+.controls{
+  display:flex;align-items:center;justify-content:center;gap:16px;
+  padding-block:6px 2px;
+}
+.act{
+  width:58px;height:58px;border-radius:50%;
+  border:1px solid var(--line);
+  background:var(--surface);
+  display:grid;place-items:center;
+  cursor:pointer;
+  box-shadow:var(--shadow);
+  transition:transform .12s ease,border-color .12s ease;
+}
+.act:hover{transform:translateY(-2px)}
+.act:active{transform:translateY(0) scale(.95)}
+.act svg{width:24px;height:24px;fill:none;stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round}
+.act.pass svg{stroke:var(--rosette)}
+.act.info{width:44px;height:44px}
+.act.info svg{width:18px;height:18px;stroke:var(--ink-3)}
+.act.like svg{stroke:var(--meadow)}
+.act:focus-visible{outline:2px solid var(--ribbon);outline-offset:3px}
+
+.hint{
+  text-align:center;
+  font-family:"IBM Plex Mono",monospace;
+  font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink-3);
+  padding-block:10px 4px;
+}
+
+/* ---- match sheet ---- */
+dialog{
+  border:none;padding:0;background:transparent;color:inherit;
+  max-width:460px;width:calc(100% - 32px);
+}
+dialog::backdrop{background:rgba(10,16,12,.55);backdrop-filter:blur(2px)}
+.sheet{
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:18px;
+  box-shadow:var(--shadow);
+  padding:20px;
+  max-height:76vh;overflow-y:auto;
+}
+.sheet h2{
+  font-family:"Fraunces",serif;margin:0 0 2px;font-size:20px;
+}
+.sheet .sub{
+  font-family:"IBM Plex Mono",monospace;font-size:10.5px;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);
+  margin-bottom:14px;
+}
+.matches{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.matches li{
+  display:flex;align-items:center;gap:11px;
+  border:1px solid var(--line);border-radius:12px;
+  padding:9px 11px;background:var(--surface-2);
+}
+.chip{
+  width:38px;height:38px;border-radius:9px;flex:none;
+  overflow:hidden;background:var(--ground);border:1px solid var(--line);
+}
+.chip svg{width:100%;height:100%;display:block}
+.m-name{font-weight:500;font-size:14px}
+.m-meta{
+  font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--ink-3);
+}
+.m-note{
+  margin-left:auto;font-family:"IBM Plex Mono",monospace;font-size:10px;
+  color:var(--ribbon);text-align:right;letter-spacing:.04em;
+}
+.sheet .close{
+  margin-top:16px;width:100%;
+  background:var(--ink);color:var(--ground);
+  border:none;border-radius:11px;padding:11px;cursor:pointer;font-weight:500;
+}
+.sheet .none{color:var(--ink-3);font-size:13.5px;margin:0}
+</style>
+</head>
+<body>
+<main class="app">
+  <header class="bar">
+    <h1 class="wordmark">Paddock<span class="dot">.</span></h1>
+    <span class="tagline">17 within 40 mi</span>
+    <span class="spacer"></span>
+    <button class="ghost" id="openMatches" type="button">Barn <span class="count" id="matchCount">0</span></button>
+  </header>
+
+  <section class="deck-wrap">
+    <div class="deck" id="deck" aria-live="polite"></div>
+  </section>
+
+  <div class="controls">
+    <button class="act pass" id="btnPass" type="button" aria-label="Pass">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+    <button class="act info" id="btnBack" type="button" aria-label="Undo last swipe">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10h12a5 5 0 0 1 0 10h-7"/><path d="M7 6l-4 4 4 4"/></svg>
+    </button>
+    <button class="act like" id="btnLike" type="button" aria-label="Like">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5S3.8 15.4 3.8 9.8A4.3 4.3 0 0 1 12 7.6a4.3 4.3 0 0 1 8.2 2.2c0 5.6-8.2 10.7-8.2 10.7z"/></svg>
+    </button>
+  </div>
+  <p class="hint">Drag, or use ← / → · Z to undo</p>
+</main>
+
+<dialog id="matchDialog">
+  <div class="sheet">
+    <h2>Your barn</h2>
+    <div class="sub" id="sheetSub">Horses that liked you back</div>
+    <ul class="matches" id="matchList"></ul>
+    <p class="none" id="noneYet">No matches yet. A good match takes more than one look over the fence.</p>
+    <button class="close" id="closeSheet" type="button">Back to the rail</button>
+  </div>
+</dialog>
+
+<script>
+/* ---------------------------------------------------------------
+   Paddock — a swipe-to-match app for horses.
+   Coat colors, heights in hands, registries and disciplines are
+   real; the horses are not.
+---------------------------------------------------------------- */
+
+const HORSES = [
+  {
+    name:"Saltwater Bourbon", barn:"Bo", age:8, sex:"Gelding",
+    breed:"Dutch Warmblood (KWPN)", coat:"bay", height:"16.3hh",
+    discipline:"Show jumping", where:"Ocala, FL",
+    tags:["1.30m","Auto lead change","Hates puddles"],
+    bio:"Jumps clean until fence nine, then has <b>opinions</b>. Looking for someone who reads a distance early and doesn't panic when I add a stride.",
+    papers:"KWPN 528-0041-B", terms:"Half lease · $1,450/mo",
+    award:"champ", rate:0.82, note:"Wants to meet at the in-gate"
+  },
+  {
+    name:"Mesquite Holiday", barn:"Missy", age:6, sex:"Mare",
+    breed:"Quarter Horse (AQHA)", coat:"buckskin", height:"15.0hh",
+    discipline:"Reining", where:"Weatherford, TX",
+    tags:["Sliding stop 12'","NRHA money earner","Bites farriers"],
+    bio:"I stop hard and spin harder. Not here for trail rides. <b>Serious inquiries only</b> — bring a video of your hands.",
+    papers:"AQHA 6042118", terms:"Stud fee n/a · Embryo avail.",
+    award:"champ", rate:0.55, note:"Asked for your reining pattern"
+  },
+  {
+    name:"Cathedral Mist", barn:"Misty", age:11, sex:"Mare",
+    breed:"Irish Sport Horse", coat:"grey", height:"16.1hh",
+    discipline:"Eventing", where:"Middleburg, VA",
+    tags:["Prelim","Bold XC","Cribs when bored"],
+    bio:"Twelve years of ditches and I have never once considered stopping. Cross-country is the only phase that matters; dressage is a <b>rumor</b>.",
+    papers:"ISH IRL-2015-4471", terms:"Lease to own",
+    award:"res", rate:0.74, note:"Sent her XC helmet cam"
+  },
+  {
+    name:"Winterlicht", barn:"Licht", age:9, sex:"Stallion",
+    breed:"Trakehner", coat:"black", height:"17.0hh",
+    discipline:"Dressage", where:"Wellington, FL",
+    tags:["PSG","Approved stallion","Needs a fan"],
+    bio:"Piaffe on the first ask. I am tall, I am dramatic, and I require the <b>good shavings</b>. Frozen semen ships worldwide.",
+    papers:"TRAK DE 431310", terms:"Stud fee $3,800 + LFG",
+    award:"champ", rate:0.41, note:"Booking 2027 breeding season"
+  },
+  {
+    name:"Potato Salad", barn:"Tater", age:14, sex:"Gelding",
+    breed:"Haflinger cross", coat:"chestnut", height:"14.1hh",
+    discipline:"Lesson horse", where:"Petaluma, CA",
+    tags:["Saintly","Kid-safe","Will open any latch"],
+    bio:"I have taught 200 children to post the trot. I know exactly how little effort that requires. Looking for someone with <b>carrots</b> and low expectations.",
+    papers:"Grade · no papers", terms:"Free to right home",
+    award:"res", rate:0.97, note:"Already in your trailer"
+  },
+  {
+    name:"Sixpence Nonthewiser", barn:"Penny", age:5, sex:"Mare",
+    breed:"Thoroughbred (OTTB)", coat:"dark bay", height:"16.2hh",
+    discipline:"Retraining", where:"Lexington, KY",
+    tags:["14 starts","Sound","Spooks at mailboxes"],
+    bio:"Ran fourth at Keeneland once and I will be telling you about it. Ninety days off the track and learning that <b>slow</b> is also a speed.",
+    papers:"JC 2021-KY-88142", terms:"Adoption · $2,500",
+    award:"res", rate:0.88, note:"Wants a quiet first hack"
+  },
+  {
+    name:"Grullo de Mayo", barn:"Mayo", age:7, sex:"Gelding",
+    breed:"Spanish Mustang", coat:"grullo", height:"14.3hh",
+    discipline:"Endurance", where:"Cave Creek, AZ",
+    tags:["100 mi completion","Barefoot","Fussy about water"],
+    bio:"Fifty miles in and my pulse is 44. Your horse is tired; I am <b>bored</b>. Looking for a rider who packs enough electrolytes for both of us.",
+    papers:"SMR 2019-0338", terms:"Not for sale · ride share",
+    award:"champ", rate:0.63, note:"Proposed a 50 on Saturday"
+  },
+  {
+    name:"Blue Roan Rhapsody", barn:"Rhapsody", age:10, sex:"Mare",
+    breed:"Percheron cross", coat:"blue roan", height:"17.2hh",
+    discipline:"Driving", where:"Lancaster, PA",
+    tags:["Pairs","Bombproof","Eats like a barn"],
+    bio:"I pull a carriage through traffic without blinking. Feet the size of dinner plates, brain the size of a <b>cathedral</b>. Prefers a steady partner on the near side.",
+    papers:"PHA 44-1902", terms:"Sale · $14,000",
+    award:"res", rate:0.70, note:"Sized you for a harness"
+  },
+  {
+    name:"Small Craft Advisory", barn:"Gale", age:4, sex:"Filly",
+    breed:"Connemara Pony", coat:"dun", height:"14.2hh",
+    discipline:"Pony jumpers", where:"Hamilton, MA",
+    tags:["Green","Scopey","Absolutely feral in wind"],
+    bio:"Four years old and already jumping bigger than the ponies twice my size. Warning issued: I have <b>never</b> been calm on a windy day.",
+    papers:"ACPS 14-0921", terms:"Sale pending · inquire",
+    award:"res", rate:0.50, note:"Bolted, then came back"
+  },
+  {
+    name:"Appaloosa Nights", barn:"Nightie", age:12, sex:"Gelding",
+    breed:"Appaloosa (ApHC)", coat:"leopard", height:"15.2hh",
+    discipline:"Trail & ranch", where:"Bend, OR",
+    tags:["Packs elk","Crosses water","One blue eye"],
+    bio:"Twelve summers in the Cascades. I'll cross the river before you've finished worrying about it. Spots are <b>not</b> a personality, but they help.",
+    papers:"ApHC 668342", terms:"Sale · $9,500",
+    award:"champ", rate:0.78, note:"Sent 40 photos of a mountain"
+  },
+  {
+    name:"Fjordy McFjordface", barn:"Fjordy", age:9, sex:"Gelding",
+    breed:"Norwegian Fjord", coat:"brown dun", height:"14.0hh",
+    discipline:"Therapeutic riding", where:"Northfield, MN",
+    tags:["PATH certified","Unflappable","Mohawk maintained"],
+    bio:"I stand still for as long as it takes. Ten years of work with riders who need me steady. My mane is cut by <b>professionals</b>.",
+    papers:"NFHR 5511", terms:"Program horse · not for sale",
+    award:"champ", rate:0.93, note:"Agreed to one (1) walk"
+  },
+  {
+    name:"Chrome Deluxe", barn:"Chrome", age:6, sex:"Stallion",
+    breed:"Gypsy Vanner", coat:"tobiano", height:"15.1hh",
+    discipline:"In-hand & liberty", where:"Wickenburg, AZ",
+    tags:["All the feather","Grand Champion","High maintenance"],
+    bio:"Four white socks, a mane past my knees, and a bathing schedule you would not believe. Do you own a <b>mane conditioner</b> budget? Be honest.",
+    papers:"GVHS 4-2211", terms:"Stud fee $2,200",
+    award:"champ", rate:0.35, note:"Requested your grooming setup"
+  }
+];
+
+/* --- coat palettes: real horse coat colors --- */
+const COATS = {
+  "bay":        {body:"#6B3D22", point:"#241812", mane:"#241812"},
+  "dark bay":   {body:"#4A2A1A", point:"#1A110C", mane:"#1A110C"},
+  "chestnut":   {body:"#9B5323", point:"#8A4A1F", mane:"#C98A4B"},
+  "black":      {body:"#241F1E", point:"#141110", mane:"#141110"},
+  "grey":       {body:"#B9B7B2", point:"#8E8C88", mane:"#E2E0DC"},
+  "buckskin":   {body:"#C9954B", point:"#2A1C12", mane:"#2A1C12"},
+  "grullo":     {body:"#8C8272", point:"#332C26", mane:"#332C26"},
+  "dun":        {body:"#BB9A5E", point:"#5A4326", mane:"#5A4326"},
+  "brown dun":  {body:"#A98E64", point:"#4B3B28", mane:"#3D3227"},
+  "blue roan":  {body:"#6E747A", point:"#1F2124", mane:"#1F2124"},
+  "leopard":    {body:"#E8E4DC", point:"#4A423A", mane:"#6A6058"},
+  "tobiano":    {body:"#7A4A2C", point:"#2A1B12", mane:"#F0EAE0"}
+};
+
+/* Stylized portrait: head-and-neck, drawn to the coat color.
+   Detail set is deliberate — blaze, muzzle, ear tips, forelock. */
+function portraitSVG(horse, compact){
+  const c = COATS[horse.coat] || COATS["bay"];
+  const id = horse.barn.replace(/\W/g,"");
+  const spots = horse.coat === "leopard"
+    ? `<g fill="${c.point}" opacity=".85">
+         <ellipse cx="128" cy="150" rx="7" ry="5"/><ellipse cx="152" cy="178" rx="9" ry="6"/>
+         <ellipse cx="108" cy="196" rx="6" ry="4.5"/><ellipse cx="141" cy="214" rx="8" ry="5"/>
+         <ellipse cx="118" cy="240" rx="10" ry="6"/><ellipse cx="160" cy="246" rx="6" ry="4"/>
+         <ellipse cx="96"  cy="166" rx="5" ry="4"/><ellipse cx="146" cy="128" rx="5" ry="4"/>
+       </g>` : "";
+  const pinto = horse.coat === "tobiano"
+    ? `<path d="M96 168 q38 -14 62 10 q16 20 4 46 q-30 24 -66 8 q-14 -30 0 -64 Z" fill="#F4EFE7" opacity=".95"/>` : "";
+  const blaze = `<path d="M118 78 q9 -6 17 0 q4 40 -1 78 q-8 6 -15 0 q-5 -40 -1 -78 Z" fill="#F2EDE4" opacity="${compact?0:.9}"/>`;
+
+  return `
+<svg viewBox="-22 -34 304 396" preserveAspectRatio="xMidYMid slice" role="img"
+     aria-label="${horse.coat} ${horse.breed}">
+  <defs>
+    <linearGradient id="sky${id}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="${c.body}" stop-opacity=".13"/>
+      <stop offset="100%" stop-color="${c.body}" stop-opacity=".30"/>
+    </linearGradient>
+    <linearGradient id="coat${id}" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="${c.body}"/>
+      <stop offset="100%" stop-color="${c.point}"/>
+    </linearGradient>
+  </defs>
+  <rect width="260" height="300" fill="url(#sky${id})"/>
+  <path d="M0 250 q70 -26 140 -6 q60 18 120 2 v54 H0 Z" fill="${c.point}" opacity=".16"/>
+  <!-- neck -->
+  <path d="M60 300 q6 -96 56 -132 l62 22 q-22 60 -18 110 Z" fill="url(#coat${id})"/>
+  <!-- mane -->
+  <path d="M116 168 q-24 44 -26 132 h-30 q6 -96 56 -132 Z" fill="${c.mane}" opacity=".92"/>
+  <!-- head -->
+  <path d="M112 56 q30 -16 46 8 q10 60 22 104 q6 20 -12 28 q-24 10 -44 -4 q-14 -60 -12 -136 Z" fill="url(#coat${id})"/>
+  ${pinto}${spots}${blaze}
+  <!-- muzzle -->
+  <path d="M136 176 q22 4 30 18 q6 16 -12 22 q-22 6 -34 -8 q-4 -22 16 -32 Z" fill="${c.point}"/>
+  <ellipse cx="152" cy="196" rx="4" ry="5.5" fill="#0D0B0A" opacity=".8"/>
+  <!-- eye -->
+  <ellipse cx="139" cy="98" rx="6.5" ry="7.5" fill="#100D0B"/>
+  <ellipse cx="141" cy="95.5" rx="2" ry="2.4" fill="#FFFFFF" opacity=".75"/>
+  <!-- ears -->
+  <path d="M110 58 q-4 -32 12 -44 q10 20 8 46 Z" fill="url(#coat${id})"/>
+  <path d="M142 52 q6 -30 24 -38 q2 22 -10 44 Z" fill="url(#coat${id})"/>
+  <path d="M114 52 q0 -20 6 -30 q5 14 4 30 Z" fill="${c.point}" opacity=".7"/>
+  <!-- forelock -->
+  <path d="M116 56 q22 -16 44 4 q-18 22 -44 12 Z" fill="${c.mane}"/>
+</svg>`;
+}
+
+/* ---------------- state ---------------- */
+let queue = HORSES.slice();
+let index = 0;
+const matches = [];
+const history = [];
+
+const deck = document.getElementById("deck");
+const matchCountEl = document.getElementById("matchCount");
+const dialog = document.getElementById("matchDialog");
+
+function cardHTML(h){
+  return `
+  <div class="portrait">
+    ${portraitSVG(h,false)}
+    <span class="ribbon ${h.award === "res" ? "res" : ""}">
+      <i></i>${h.award === "res" ? "Reserve champion" : "Champion"}
+    </span>
+    <span class="hh">${h.height} · ${h.coat}</span>
+    <span class="stamp yes">Yes</span>
+    <span class="stamp no">Nope</span>
+  </div>
+  <div class="body">
+    <div class="namerow">
+      <h2 class="name">${h.name}</h2>
+      <span class="age">${h.age}yo ${h.sex.toLowerCase()}</span>
+    </div>
+    <div class="barn">“${h.barn}” · ${h.breed} · ${h.where}</div>
+    <div class="specs">
+      <span class="spec d">${h.discipline}</span>
+      ${h.tags.map(t => `<span class="spec">${t}</span>`).join("")}
+    </div>
+    <p class="bio">${h.bio}</p>
+    <div class="papers"><span>${h.papers}</span><span>${h.terms}</span></div>
+  </div>`;
+}
+
+function render(){
+  deck.innerHTML = "";
+  const remaining = queue.slice(index, index + 3);
+  if(!remaining.length){
+    deck.innerHTML = `<div class="empty">
+      <h2>That's the whole barn aisle</h2>
+      <p>You've seen every horse within 40 miles. New listings post after the weekend shows.</p>
+      <button class="ghost" id="reshuffle" type="button">Start over</button>
+    </div>`;
+    document.getElementById("reshuffle").addEventListener("click", () => {
+      index = 0; history.length = 0; render();
+    });
+    return;
+  }
+  // back to front so the top card is last in the DOM
+  remaining.slice().reverse().forEach((h, i) => {
+    const depth = remaining.length - 1 - i;      // 0 = top
+    const el = document.createElement("article");
+    el.className = "card" + (depth ? " behind" : "");
+    el.style.transform = `translateY(${depth * 10}px) scale(${1 - depth * 0.035})`;
+    el.style.zIndex = String(10 - depth);
+    el.innerHTML = cardHTML(h);
+    deck.appendChild(el);
+    if(!depth) attachDrag(el, h);
+  });
+}
+
+function decide(liked){
+  const top = deck.querySelector(".card:not(.behind)");
+  const horse = queue[index];
+  if(!top || !horse) return;
+  history.push(index);
+  fling(top, liked ? 1 : -1, () => {
+    index++;
+    if(liked && Math.random() < horse.rate){
+      matches.push(horse);
+      matchCountEl.textContent = String(matches.length);
+    }
+    render();
+  });
+}
+
+function fling(el, dir, done){
+  el.classList.add("settling");
+  el.style.transform = `translate(${dir * 520}px, -40px) rotate(${dir * 22}deg)`;
+  el.style.opacity = "0";
+  const finish = () => { el.removeEventListener("transitionend", finish); done(); };
+  el.addEventListener("transitionend", finish);
+  setTimeout(() => { if(el.isConnected) finish(); }, 420);
+}
+
+function attachDrag(el, horse){
+  let startX = 0, startY = 0, dx = 0, dy = 0, dragging = false, pid = null;
+  const yes = el.querySelector(".stamp.yes");
+  const no  = el.querySelector(".stamp.no");
+
+  el.addEventListener("pointerdown", e => {
+    if(e.button !== 0 && e.pointerType === "mouse") return;
+    dragging = true; pid = e.pointerId;
+    startX = e.clientX; startY = e.clientY;
+    el.classList.remove("settling");
+    el.setPointerCapture(pid);
+  });
+
+  el.addEventListener("pointermove", e => {
+    if(!dragging || e.pointerId !== pid) return;
+    dx = e.clientX - startX; dy = e.clientY - startY;
+    el.style.transform = `translate(${dx}px, ${dy * .35}px) rotate(${dx * .05}deg)`;
+    const t = Math.min(Math.abs(dx) / 110, 1);
+    yes.style.opacity = dx > 0 ? String(t) : "0";
+    no.style.opacity  = dx < 0 ? String(t) : "0";
+  });
+
+  const release = e => {
+    if(!dragging || (e && e.pointerId !== pid)) return;
+    dragging = false;
+    try { el.releasePointerCapture(pid); } catch(_) {}
+    if(Math.abs(dx) > 105){
+      const liked = dx > 0;
+      history.push(index);
+      fling(el, liked ? 1 : -1, () => {
+        index++;
+        if(liked && Math.random() < horse.rate){
+          matches.push(horse);
+          matchCountEl.textContent = String(matches.length);
+        }
+        render();
+      });
+    } else {
+      el.classList.add("settling");
+      el.style.transform = "translate(0,0) rotate(0deg)";
+      yes.style.opacity = "0"; no.style.opacity = "0";
+    }
+    dx = 0; dy = 0;
+  };
+  el.addEventListener("pointerup", release);
+  el.addEventListener("pointercancel", release);
+}
+
+function undo(){
+  if(!history.length) return;
+  index = history.pop();
+  render();
+}
+
+/* ---------------- matches sheet ---------------- */
+function openSheet(){
+  const list = document.getElementById("matchList");
+  const none = document.getElementById("noneYet");
+  const sub  = document.getElementById("sheetSub");
+  list.innerHTML = matches.map(h => `
+    <li>
+      <span class="chip">${portraitSVG(h, true)}</span>
+      <span>
+        <span class="m-name">${h.name}</span><br>
+        <span class="m-meta">${h.height} · ${h.discipline} · ${h.where}</span>
+      </span>
+      <span class="m-note">${h.note}</span>
+    </li>`).join("");
+  none.hidden = matches.length > 0;
+  sub.textContent = matches.length
+    ? `${matches.length} horse${matches.length === 1 ? "" : "s"} liked you back`
+    : "Horses that liked you back";
+  dialog.showModal();
+}
+
+document.getElementById("btnLike").addEventListener("click", () => decide(true));
+document.getElementById("btnPass").addEventListener("click", () => decide(false));
+document.getElementById("btnBack").addEventListener("click", undo);
+document.getElementById("openMatches").addEventListener("click", openSheet);
+document.getElementById("closeSheet").addEventListener("click", () => dialog.close());
+
+document.addEventListener("keydown", e => {
+  if(dialog.open) return;
+  if(e.key === "ArrowRight") { e.preventDefault(); decide(true); }
+  if(e.key === "ArrowLeft")  { e.preventDefault(); decide(false); }
+  if(e.key.toLowerCase() === "z") undo();
+});
+
+render();
+</script>
+</body>
+</html>
