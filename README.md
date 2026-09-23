@@ -1,23 +1,29 @@
-# Paddock — horse tinder
+# Horse Tinder
 
-A swipe-to-match app for horses. Twelve profiles: breeding prospects, lease
-partners, school horses and one Haflinger cross who has taught 200 children to
-post the trot and knows exactly how little effort that requires.
+Swipe to match with horses. Twelve profiles — breeding prospects, lease
+partners, a school horse who has taught 200 children to post the trot and knows
+exactly how little effort that requires.
 
 **Live:** https://evanyen121.github.io/horse-tinder/
 
 ## What's in it
 
 - Drag a card, or use `←` / `→`. `Z` undoes the last swipe.
-- Each horse carries real horse-world detail — height in hands, coat color
-  (grullo, blue roan, tobiano), registry and papers, discipline, lease terms.
-- Portraits are drawn in SVG from the coat palette, so the whole app is one
-  self-contained `index.html` with no images and no build step.
-- Matches land in "Barn". Not every like is returned — the Gypsy Vanner stallion
-  with the bathing schedule is picky.
+- Real horse photos, all from Wikimedia Commons under free licences and
+  credited in-app and in [CREDITS.md](CREDITS.md).
+- Each profile carries real horse-world detail — height in hands, coat colour,
+  registry and papers, discipline, lease or stud terms — matched to the horse in
+  the photograph.
+- Matches land in "Barn". Not every like comes back; the Gypsy stallion with the
+  bathing schedule is picky.
 
 ## Running it
 
-Open `index.html`. That's it — no dependencies beyond Google Fonts.
+Open `index.html` — no build step, no dependencies beyond Google Fonts.
 
-The horses are fictional. The registries, coat colors and disciplines are not.
+## Licence
+
+App code: MIT. Photographs stay under their own licences, listed in
+[CREDITS.md](CREDITS.md) — CC BY-SA images remain CC BY-SA if you reuse them.
+The horses are real; their profiles are invented. No horse pictured is for
+sale, at stud, or looking for anything.

@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Paddock</title>
-<meta name="description" content="A swipe-to-match app for horses — breeding prospects, lease partners and turnout buddies, sorted one card at a time.">
+<title>Horse Tinder</title>
+<meta name="description" content="Swipe to match with horses — breeding prospects, lease partners and turnout buddies, one card at a time.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Public+Sans:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -89,8 +89,8 @@ button{font:inherit;color:inherit}
 }
 .wordmark{
   font-family:"Fraunces",Georgia,serif;
-  font-weight:700;font-size:26px;letter-spacing:-.01em;
-  margin:0;
+  font-weight:700;font-size:23px;letter-spacing:-.015em;
+  margin:0;white-space:nowrap;
 }
 .wordmark .dot{color:var(--ribbon)}
 .tagline{
@@ -149,7 +149,11 @@ button{font:inherit;color:inherit}
   border-bottom:1px solid var(--line);
   overflow:hidden;
 }
-.portrait svg{position:absolute;inset:0;width:100%;height:100%}
+.portrait .pic{
+  position:absolute;inset:0;width:100%;height:100%;
+  object-fit:cover;object-position:center 42%;
+  display:block;user-select:none;-webkit-user-drag:none;
+}
 .ribbon{
   position:absolute;top:12px;left:12px;
   display:inline-flex;align-items:center;gap:6px;
@@ -184,6 +188,7 @@ button{font:inherit;color:inherit}
   font-weight:700;font-size:26px;letter-spacing:.04em;
   text-transform:uppercase;
   padding:6px 14px;border:3px solid;border-radius:10px;
+  background:color-mix(in srgb, var(--surface) 78%, transparent);
   opacity:0;pointer-events:none;
 }
 .stamp.yes{right:20px;color:var(--meadow);border-color:var(--meadow);transform:rotate(11deg)}
@@ -258,13 +263,17 @@ button{font:inherit;color:inherit}
 .act.like svg{stroke:var(--meadow)}
 .act:focus-visible{outline:2px solid var(--ribbon);outline-offset:3px}
 
-.hint{
-  text-align:center;
+.footnote{
+  display:flex;justify-content:center;align-items:center;gap:10px;flex-wrap:wrap;
   font-family:"IBM Plex Mono",monospace;
   font-size:10px;letter-spacing:.1em;text-transform:uppercase;
   color:var(--ink-3);
-  padding-block:10px 4px;
+  padding-block:10px 2px;
+  margin:0;
 }
+.footnote button{background:none;border:none;padding:0;cursor:pointer;color:var(--ink-3);
+  font:inherit;text-decoration:underline;text-underline-offset:3px}
+.footnote button:hover{color:var(--ink-2)}
 
 /* ---- match sheet ---- */
 dialog{
@@ -298,7 +307,7 @@ dialog::backdrop{background:rgba(10,16,12,.55);backdrop-filter:blur(2px)}
   width:38px;height:38px;border-radius:9px;flex:none;
   overflow:hidden;background:var(--ground);border:1px solid var(--line);
 }
-.chip svg{width:100%;height:100%;display:block}
+.chip img{width:100%;height:100%;object-fit:cover;display:block}
 .m-name{font-weight:500;font-size:14px}
 .m-meta{
   font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--ink-3);
@@ -313,12 +322,19 @@ dialog::backdrop{background:rgba(10,16,12,.55);backdrop-filter:blur(2px)}
   border:none;border-radius:11px;padding:11px;cursor:pointer;font-weight:500;
 }
 .sheet .none{color:var(--ink-3);font-size:13.5px;margin:0}
+.credits{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:9px;font-size:12.5px}
+.credits li{display:flex;gap:10px;align-items:flex-start}
+.credits .horse{font-weight:500;min-width:76px;flex:none}
+.credits .who{color:var(--ink-2)}
+.credits .lic{font-family:"IBM Plex Mono",monospace;font-size:10px;color:var(--ink-3);letter-spacing:.04em}
+.note{font-size:12.5px;color:var(--ink-3);margin:14px 0 0;line-height:1.5}
+.sheet a{color:var(--ribbon)}
 </style>
 </head>
 <body>
 <main class="app">
   <header class="bar">
-    <h1 class="wordmark">Paddock<span class="dot">.</span></h1>
+    <h1 class="wordmark">Horse Tinder<span class="dot">.</span></h1>
     <span class="tagline">17 within 40 mi</span>
     <span class="spacer"></span>
     <button class="ghost" id="openMatches" type="button">Barn <span class="count" id="matchCount">0</span></button>
@@ -339,7 +355,10 @@ dialog::backdrop{background:rgba(10,16,12,.55);backdrop-filter:blur(2px)}
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5S3.8 15.4 3.8 9.8A4.3 4.3 0 0 1 12 7.6a4.3 4.3 0 0 1 8.2 2.2c0 5.6-8.2 10.7-8.2 10.7z"/></svg>
     </button>
   </div>
-  <p class="hint">Drag, or use ← / → · Z to undo</p>
+  <p class="footnote">
+    <span>Drag, or ← / → · Z to undo</span>
+    <button id="openCredits" type="button">Photo credits</button>
+  </p>
 </main>
 
 <dialog id="matchDialog">
@@ -352,195 +371,150 @@ dialog::backdrop{background:rgba(10,16,12,.55);backdrop-filter:blur(2px)}
   </div>
 </dialog>
 
+<dialog id="creditDialog">
+  <div class="sheet">
+    <h2>Photo credits</h2>
+    <div class="sub">Real horses, from Wikimedia Commons</div>
+    <ul class="credits" id="creditList"></ul>
+    <p class="note">Every photograph is a real horse published under a free licence and credited
+      to its photographer. The profiles wrapped around them are invented — no horse pictured here
+      is for sale, at stud, or looking for anything.</p>
+    <button class="close" id="closeCredits" type="button">Close</button>
+  </div>
+</dialog>
+
 <script>
 /* ---------------------------------------------------------------
-   Paddock — a swipe-to-match app for horses.
-   Coat colors, heights in hands, registries and disciplines are
-   real; the horses are not.
+   Horse Tinder — swipe to match with horses.
+   Photos are real horses from Wikimedia Commons, credited in-app.
+   The profiles wrapped around them are invented; the breeds,
+   registries, heights in hands and disciplines follow the photo.
 ---------------------------------------------------------------- */
 
 const HORSES = [
   {
-    name:"Saltwater Bourbon", barn:"Bo", age:8, sex:"Gelding",
+    key:"bo", name:"Saltwater Bourbon", barn:"Bo", age:8, sex:"Gelding",
     breed:"Dutch Warmblood (KWPN)", coat:"bay", height:"16.3hh",
     discipline:"Show jumping", where:"Ocala, FL",
     tags:["1.30m","Auto lead change","Hates puddles"],
     bio:"Jumps clean until fence nine, then has <b>opinions</b>. Looking for someone who reads a distance early and doesn't panic when I add a stride.",
     papers:"KWPN 528-0041-B", terms:"Half lease · $1,450/mo",
-    award:"champ", rate:0.82, note:"Wants to meet at the in-gate"
+    award:"champ", rate:0.82, note:"Wants to meet at the in-gate",
+    credit:{by:"OndRond", lic:"CC BY-SA 3.0", page:"https://commons.wikimedia.org/wiki/File:Skelton_CDN_La_Baule_2013.jpg"}
   },
   {
-    name:"Mesquite Holiday", barn:"Missy", age:6, sex:"Mare",
-    breed:"Quarter Horse (AQHA)", coat:"buckskin", height:"15.0hh",
+    key:"missy", name:"Mesquite Holiday", barn:"Missy", age:6, sex:"Mare",
+    breed:"Quarter Horse (AQHA)", coat:"sorrel", height:"15.0hh",
     discipline:"Reining", where:"Weatherford, TX",
     tags:["Sliding stop 12'","NRHA money earner","Bites farriers"],
     bio:"I stop hard and spin harder. Not here for trail rides. <b>Serious inquiries only</b> — bring a video of your hands.",
-    papers:"AQHA 6042118", terms:"Stud fee n/a · Embryo avail.",
-    award:"champ", rate:0.55, note:"Asked for your reining pattern"
+    papers:"AQHA 6042118", terms:"Not for sale · embryo avail.",
+    award:"champ", rate:0.55, note:"Asked for your reining pattern",
+    credit:{by:"Jose Reynaldo da Fonseca", lic:"CC BY-SA 3.0", page:"https://commons.wikimedia.org/wiki/File:EMAPA_-ABQM_190409_REFON_13.JPG"}
   },
   {
-    name:"Cathedral Mist", barn:"Misty", age:11, sex:"Mare",
+    key:"misty", name:"Cathedral Mist", barn:"Misty", age:11, sex:"Mare",
     breed:"Irish Sport Horse", coat:"grey", height:"16.1hh",
     discipline:"Eventing", where:"Middleburg, VA",
     tags:["Prelim","Bold XC","Cribs when bored"],
-    bio:"Twelve years of ditches and I have never once considered stopping. Cross-country is the only phase that matters; dressage is a <b>rumor</b>.",
+    bio:"Eleven years of ditches and I have never once considered stopping. Cross-country is the only phase that matters; dressage is a <b>rumor</b>.",
     papers:"ISH IRL-2015-4471", terms:"Lease to own",
-    award:"res", rate:0.74, note:"Sent her XC helmet cam"
+    award:"res", rate:0.74, note:"Sent her XC helmet cam",
+    credit:{by:"michael_bryant, ed. Nordlicht8", lic:"CC BY 2.0", page:"https://commons.wikimedia.org/wiki/File:CCI_Lexington_2009_-_Bettina_Hoy_Ringwood_Cockatoo.jpg"}
   },
   {
-    name:"Winterlicht", barn:"Licht", age:9, sex:"Stallion",
+    key:"licht", name:"Winterlicht", barn:"Licht", age:9, sex:"Stallion",
     breed:"Trakehner", coat:"black", height:"17.0hh",
     discipline:"Dressage", where:"Wellington, FL",
     tags:["PSG","Approved stallion","Needs a fan"],
     bio:"Piaffe on the first ask. I am tall, I am dramatic, and I require the <b>good shavings</b>. Frozen semen ships worldwide.",
     papers:"TRAK DE 431310", terms:"Stud fee $3,800 + LFG",
-    award:"champ", rate:0.41, note:"Booking 2027 breeding season"
+    award:"champ", rate:0.41, note:"Booking 2027 breeding season",
+    credit:{by:"Fotoimage", lic:"Public domain", page:"https://commons.wikimedia.org/wiki/File:WCLV07m.JPG"}
   },
   {
-    name:"Potato Salad", barn:"Tater", age:14, sex:"Gelding",
-    breed:"Haflinger cross", coat:"chestnut", height:"14.1hh",
+    key:"tater", name:"Potato Salad", barn:"Tater", age:14, sex:"Gelding",
+    breed:"Haflinger", coat:"chestnut, flaxen", height:"14.1hh",
     discipline:"Lesson horse", where:"Petaluma, CA",
     tags:["Saintly","Kid-safe","Will open any latch"],
     bio:"I have taught 200 children to post the trot. I know exactly how little effort that requires. Looking for someone with <b>carrots</b> and low expectations.",
-    papers:"Grade · no papers", terms:"Free to right home",
-    award:"res", rate:0.97, note:"Already in your trailer"
+    papers:"AHR 14-2288", terms:"Free to right home",
+    award:"res", rate:0.97, note:"Already in your trailer",
+    credit:{by:"Flominator", lic:"CC BY-SA 3.0", page:"https://commons.wikimedia.org/wiki/File:Haflinger_3607_by_Flominator.jpg"}
   },
   {
-    name:"Sixpence Nonthewiser", barn:"Penny", age:5, sex:"Mare",
+    key:"penny", name:"Sixpence Nonthewiser", barn:"Penny", age:5, sex:"Mare",
     breed:"Thoroughbred (OTTB)", coat:"dark bay", height:"16.2hh",
     discipline:"Retraining", where:"Lexington, KY",
     tags:["14 starts","Sound","Spooks at mailboxes"],
     bio:"Ran fourth at Keeneland once and I will be telling you about it. Ninety days off the track and learning that <b>slow</b> is also a speed.",
     papers:"JC 2021-KY-88142", terms:"Adoption · $2,500",
-    award:"res", rate:0.88, note:"Wants a quiet first hack"
+    award:"res", rate:0.88, note:"Wants a quiet first hack",
+    credit:{by:"Lucie Provencher", lic:"CC BY-SA 2.0", page:"https://commons.wikimedia.org/wiki/File:Azimut_play_2.jpg"}
   },
   {
-    name:"Grullo de Mayo", barn:"Mayo", age:7, sex:"Gelding",
-    breed:"Spanish Mustang", coat:"grullo", height:"14.3hh",
+    key:"mayo", name:"Grullo de Mayo", barn:"Mayo", age:7, sex:"Gelding",
+    breed:"Mustang", coat:"dark bay", height:"14.3hh",
     discipline:"Endurance", where:"Cave Creek, AZ",
     tags:["100 mi completion","Barefoot","Fussy about water"],
-    bio:"Fifty miles in and my pulse is 44. Your horse is tired; I am <b>bored</b>. Looking for a rider who packs enough electrolytes for both of us.",
-    papers:"SMR 2019-0338", terms:"Not for sale · ride share",
-    award:"champ", rate:0.63, note:"Proposed a 50 on Saturday"
+    bio:"Fifty miles in and my pulse is 44. Your horse is tired; I am <b>bored</b>. Named before anyone checked my coat color. Looking for a rider who packs enough electrolytes for both of us.",
+    papers:"BLM freeze brand 19-0338", terms:"Not for sale · ride share",
+    award:"champ", rate:0.63, note:"Proposed a 50 on Saturday",
+    credit:{by:"Ealdgyth", lic:"CC BY-SA 3.0", page:"https://commons.wikimedia.org/wiki/File:Mustanggelding.jpg"}
   },
   {
-    name:"Blue Roan Rhapsody", barn:"Rhapsody", age:10, sex:"Mare",
-    breed:"Percheron cross", coat:"blue roan", height:"17.2hh",
-    discipline:"Driving", where:"Lancaster, PA",
+    key:"rhapsody", name:"Rhapsody in Grey", barn:"Rhapsody", age:10, sex:"Mare",
+    breed:"Percheron", coat:"dapple grey", height:"17.2hh",
+    discipline:"Combined driving", where:"Lancaster, PA",
     tags:["Pairs","Bombproof","Eats like a barn"],
-    bio:"I pull a carriage through traffic without blinking. Feet the size of dinner plates, brain the size of a <b>cathedral</b>. Prefers a steady partner on the near side.",
+    bio:"I put a carriage through a water hazard without blinking. Feet the size of dinner plates, brain the size of a <b>cathedral</b>. Prefers a steady partner on the near side.",
     papers:"PHA 44-1902", terms:"Sale · $14,000",
-    award:"res", rate:0.70, note:"Sized you for a harness"
+    award:"res", rate:0.70, note:"Sized you for a harness",
+    credit:{by:"Édouard Hue", lic:"CC BY-SA 4.0", page:"https://commons.wikimedia.org/wiki/File:Concours_national_d%27attelage_%C3%A9lite_Rennes_2014-6.jpg"}
   },
   {
-    name:"Small Craft Advisory", barn:"Gale", age:4, sex:"Filly",
-    breed:"Connemara Pony", coat:"dun", height:"14.2hh",
+    key:"gale", name:"Small Craft Advisory", barn:"Gale", age:4, sex:"Colt",
+    breed:"Connemara Pony", coat:"bay", height:"14.2hh",
     discipline:"Pony jumpers", where:"Hamilton, MA",
     tags:["Green","Scopey","Absolutely feral in wind"],
     bio:"Four years old and already jumping bigger than the ponies twice my size. Warning issued: I have <b>never</b> been calm on a windy day.",
     papers:"ACPS 14-0921", terms:"Sale pending · inquire",
-    award:"res", rate:0.50, note:"Bolted, then came back"
+    award:"res", rate:0.50, note:"Bolted, then came back",
+    credit:{by:"Satu Pitkänen", lic:"CC BY-SA 3.0", page:"https://commons.wikimedia.org/wiki/File:Connemara_stallion.jpg"}
   },
   {
-    name:"Appaloosa Nights", barn:"Nightie", age:12, sex:"Gelding",
+    key:"nightie", name:"Appaloosa Nights", barn:"Nightie", age:12, sex:"Stallion",
     breed:"Appaloosa (ApHC)", coat:"leopard", height:"15.2hh",
     discipline:"Trail & ranch", where:"Bend, OR",
     tags:["Packs elk","Crosses water","One blue eye"],
     bio:"Twelve summers in the Cascades. I'll cross the river before you've finished worrying about it. Spots are <b>not</b> a personality, but they help.",
-    papers:"ApHC 668342", terms:"Sale · $9,500",
-    award:"champ", rate:0.78, note:"Sent 40 photos of a mountain"
+    papers:"ApHC 668342", terms:"Stud fee $1,200",
+    award:"champ", rate:0.78, note:"Sent 40 photos of a mountain",
+    credit:{by:"Karakal", lic:"CC BY-SA 3.0", page:"https://commons.wikimedia.org/wiki/File:Appaloosa_stallion.JPG"}
   },
   {
-    name:"Fjordy McFjordface", barn:"Fjordy", age:9, sex:"Gelding",
+    key:"fjordy", name:"Fjordy McFjordface", barn:"Fjordy", age:9, sex:"Gelding",
     breed:"Norwegian Fjord", coat:"brown dun", height:"14.0hh",
     discipline:"Therapeutic riding", where:"Northfield, MN",
     tags:["PATH certified","Unflappable","Mohawk maintained"],
-    bio:"I stand still for as long as it takes. Ten years of work with riders who need me steady. My mane is cut by <b>professionals</b>.",
+    bio:"I stand still for as long as it takes. Nine years of work with riders who need me steady. My mane is cut by <b>professionals</b>.",
     papers:"NFHR 5511", terms:"Program horse · not for sale",
-    award:"champ", rate:0.93, note:"Agreed to one (1) walk"
+    award:"champ", rate:0.93, note:"Agreed to one (1) walk",
+    credit:{by:"TeunSpaans", lic:"Public domain", page:"https://commons.wikimedia.org/wiki/File:Fjordenpaarden_R0021294.JPG"}
   },
   {
-    name:"Chrome Deluxe", barn:"Chrome", age:6, sex:"Stallion",
-    breed:"Gypsy Vanner", coat:"tobiano", height:"15.1hh",
+    key:"chrome", name:"Chrome Deluxe", barn:"Chrome", age:6, sex:"Stallion",
+    breed:"Gypsy Horse", coat:"piebald tobiano", height:"15.1hh",
     discipline:"In-hand & liberty", where:"Wickenburg, AZ",
     tags:["All the feather","Grand Champion","High maintenance"],
-    bio:"Four white socks, a mane past my knees, and a bathing schedule you would not believe. Do you own a <b>mane conditioner</b> budget? Be honest.",
+    bio:"Four white socks, a mane past my knees, and a bathing schedule you would not believe. Do you have a <b>mane conditioner</b> budget? Be honest.",
     papers:"GVHS 4-2211", terms:"Stud fee $2,200",
-    award:"champ", rate:0.35, note:"Requested your grooming setup"
+    award:"champ", rate:0.35, note:"Requested your grooming setup",
+    credit:{by:"Keigauna", lic:"CC BY-SA 3.0", page:"https://commons.wikimedia.org/wiki/File:Gauner-neu.JPG"}
   }
 ];
 
-/* --- coat palettes: real horse coat colors --- */
-const COATS = {
-  "bay":        {body:"#6B3D22", point:"#241812", mane:"#241812"},
-  "dark bay":   {body:"#4A2A1A", point:"#1A110C", mane:"#1A110C"},
-  "chestnut":   {body:"#9B5323", point:"#8A4A1F", mane:"#C98A4B"},
-  "black":      {body:"#241F1E", point:"#141110", mane:"#141110"},
-  "grey":       {body:"#B9B7B2", point:"#8E8C88", mane:"#E2E0DC"},
-  "buckskin":   {body:"#C9954B", point:"#2A1C12", mane:"#2A1C12"},
-  "grullo":     {body:"#8C8272", point:"#332C26", mane:"#332C26"},
-  "dun":        {body:"#BB9A5E", point:"#5A4326", mane:"#5A4326"},
-  "brown dun":  {body:"#A98E64", point:"#4B3B28", mane:"#3D3227"},
-  "blue roan":  {body:"#6E747A", point:"#1F2124", mane:"#1F2124"},
-  "leopard":    {body:"#E8E4DC", point:"#4A423A", mane:"#6A6058"},
-  "tobiano":    {body:"#7A4A2C", point:"#2A1B12", mane:"#F0EAE0"}
-};
-
-/* Stylized portrait: head-and-neck, drawn to the coat color.
-   Detail set is deliberate — blaze, muzzle, ear tips, forelock. */
-function portraitSVG(horse, compact){
-  const c = COATS[horse.coat] || COATS["bay"];
-  const id = horse.barn.replace(/\W/g,"");
-  const spots = horse.coat === "leopard"
-    ? `<g fill="${c.point}" opacity=".85">
-         <ellipse cx="128" cy="150" rx="7" ry="5"/><ellipse cx="152" cy="178" rx="9" ry="6"/>
-         <ellipse cx="108" cy="196" rx="6" ry="4.5"/><ellipse cx="141" cy="214" rx="8" ry="5"/>
-         <ellipse cx="118" cy="240" rx="10" ry="6"/><ellipse cx="160" cy="246" rx="6" ry="4"/>
-         <ellipse cx="96"  cy="166" rx="5" ry="4"/><ellipse cx="146" cy="128" rx="5" ry="4"/>
-       </g>` : "";
-  const pinto = horse.coat === "tobiano"
-    ? `<path d="M96 168 q38 -14 62 10 q16 20 4 46 q-30 24 -66 8 q-14 -30 0 -64 Z" fill="#F4EFE7" opacity=".95"/>` : "";
-  const blaze = `<path d="M118 78 q9 -6 17 0 q4 40 -1 78 q-8 6 -15 0 q-5 -40 -1 -78 Z" fill="#F2EDE4" opacity="${compact?0:.9}"/>`;
-
-  return `
-<svg viewBox="-88 -40 436 400" preserveAspectRatio="xMidYMin slice" role="img"
-     aria-label="${horse.coat} ${horse.breed}">
-  <defs>
-    <linearGradient id="sky${id}" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="${c.body}" stop-opacity=".13"/>
-      <stop offset="100%" stop-color="${c.body}" stop-opacity=".30"/>
-    </linearGradient>
-    <linearGradient id="coat${id}" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="${c.body}"/>
-      <stop offset="100%" stop-color="${c.point}"/>
-    </linearGradient>
-  </defs>
-  <rect x="-200" y="-200" width="760" height="800" fill="url(#sky${id})"/>
-  <path d="M-200 258 q130 -30 210 -12 q80 22 160 2 q110 -14 190 -4 V420 H-200 Z" fill="${c.point}" opacity=".16"/>
-  <!-- neck -->
-  <path d="M60 300 q6 -96 56 -132 l62 22 q-22 60 -18 110 Z" fill="url(#coat${id})"/>
-  <!-- mane -->
-  <path d="M116 168 q-24 44 -26 132 h-30 q6 -96 56 -132 Z" fill="${c.mane}" opacity=".92"/>
-  <!-- head -->
-  <path d="M112 56 q30 -16 46 8 q10 60 22 104 q6 20 -12 28 q-24 10 -44 -4 q-14 -60 -12 -136 Z" fill="url(#coat${id})"/>
-  ${pinto}${spots}${blaze}
-  <!-- muzzle -->
-  <path d="M136 176 q22 4 30 18 q6 16 -12 22 q-22 6 -34 -8 q-4 -22 16 -32 Z" fill="${c.point}"/>
-  <ellipse cx="152" cy="196" rx="4" ry="5.5" fill="#0D0B0A" opacity=".8"/>
-  <!-- eye -->
-  <ellipse cx="139" cy="98" rx="6.5" ry="7.5" fill="#100D0B"/>
-  <ellipse cx="141" cy="95.5" rx="2" ry="2.4" fill="#FFFFFF" opacity=".75"/>
-  <!-- ears -->
-  <path d="M110 58 q-4 -32 12 -44 q10 20 8 46 Z" fill="url(#coat${id})"/>
-  <path d="M142 52 q6 -30 24 -38 q2 22 -10 44 Z" fill="url(#coat${id})"/>
-  <path d="M114 52 q0 -20 6 -30 q5 14 4 30 Z" fill="${c.point}" opacity=".7"/>
-  <!-- forelock -->
-  <path d="M116 56 q22 -16 44 4 q-18 22 -44 12 Z" fill="${c.mane}"/>
-</svg>`;
-}
-
 /* ---------------- state ---------------- */
-let queue = HORSES.slice();
 let index = 0;
 const matches = [];
 const history = [];
@@ -548,11 +522,17 @@ const history = [];
 const deck = document.getElementById("deck");
 const matchCountEl = document.getElementById("matchCount");
 const dialog = document.getElementById("matchDialog");
+const creditDialog = document.getElementById("creditDialog");
+
+/* keep the next few photos warm so a swipe never lands on a blank card */
+function preload(from){
+  HORSES.slice(from, from + 3).forEach(h => { const im = new Image(); im.src = `photos/${h.key}.jpg`; });
+}
 
 function cardHTML(h){
   return `
   <div class="portrait">
-    ${portraitSVG(h,false)}
+    <img class="pic" src="photos/${h.key}.jpg" alt="${h.coat} ${h.breed}" draggable="false">
     <span class="ribbon ${h.award === "res" ? "res" : ""}">
       <i></i>${h.award === "res" ? "Reserve champion" : "Champion"}
     </span>
@@ -577,7 +557,7 @@ function cardHTML(h){
 
 function render(){
   deck.innerHTML = "";
-  const remaining = queue.slice(index, index + 3);
+  const remaining = HORSES.slice(index, index + 3);
   if(!remaining.length){
     deck.innerHTML = `<div class="empty">
       <h2>That's the whole barn aisle</h2>
@@ -600,11 +580,12 @@ function render(){
     deck.appendChild(el);
     if(!depth) attachDrag(el, h);
   });
+  preload(index + 3);
 }
 
 function decide(liked){
   const top = deck.querySelector(".card:not(.behind)");
-  const horse = queue[index];
+  const horse = HORSES[index];
   if(!top || !horse) return;
   history.push(index);
   fling(top, liked ? 1 : -1, () => {
@@ -687,7 +668,7 @@ function openSheet(){
   const sub  = document.getElementById("sheetSub");
   list.innerHTML = matches.map(h => `
     <li>
-      <span class="chip">${portraitSVG(h, true)}</span>
+      <span class="chip"><img src="photos/${h.key}.jpg" alt=""></span>
       <span>
         <span class="m-name">${h.name}</span><br>
         <span class="m-meta">${h.height} · ${h.discipline} · ${h.where}</span>
@@ -701,14 +682,29 @@ function openSheet(){
   dialog.showModal();
 }
 
+function openCredits(){
+  document.getElementById("creditList").innerHTML = HORSES.map(h => `
+    <li>
+      <span class="horse">${h.barn}</span>
+      <span>
+        <span class="who">${h.credit.by}</span> ·
+        <a href="${h.credit.page}" target="_blank" rel="noopener">Wikimedia Commons</a><br>
+        <span class="lic">${h.credit.lic}</span>
+      </span>
+    </li>`).join("");
+  creditDialog.showModal();
+}
+
 document.getElementById("btnLike").addEventListener("click", () => decide(true));
 document.getElementById("btnPass").addEventListener("click", () => decide(false));
 document.getElementById("btnBack").addEventListener("click", undo);
 document.getElementById("openMatches").addEventListener("click", openSheet);
 document.getElementById("closeSheet").addEventListener("click", () => dialog.close());
+document.getElementById("openCredits").addEventListener("click", openCredits);
+document.getElementById("closeCredits").addEventListener("click", () => creditDialog.close());
 
 document.addEventListener("keydown", e => {
-  if(dialog.open) return;
+  if(dialog.open || creditDialog.open) return;
   if(e.key === "ArrowRight") { e.preventDefault(); decide(true); }
   if(e.key === "ArrowLeft")  { e.preventDefault(); decide(false); }
   if(e.key.toLowerCase() === "z") undo();
