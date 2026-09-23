@@ -503,7 +503,7 @@ function portraitSVG(horse, compact){
   const blaze = `<path d="M118 78 q9 -6 17 0 q4 40 -1 78 q-8 6 -15 0 q-5 -40 -1 -78 Z" fill="#F2EDE4" opacity="${compact?0:.9}"/>`;
 
   return `
-<svg viewBox="-22 -34 304 396" preserveAspectRatio="xMidYMid slice" role="img"
+<svg viewBox="-88 -40 436 400" preserveAspectRatio="xMidYMin slice" role="img"
      aria-label="${horse.coat} ${horse.breed}">
   <defs>
     <linearGradient id="sky${id}" x1="0" y1="0" x2="0" y2="1">
@@ -515,8 +515,8 @@ function portraitSVG(horse, compact){
       <stop offset="100%" stop-color="${c.point}"/>
     </linearGradient>
   </defs>
-  <rect width="260" height="300" fill="url(#sky${id})"/>
-  <path d="M0 250 q70 -26 140 -6 q60 18 120 2 v54 H0 Z" fill="${c.point}" opacity=".16"/>
+  <rect x="-200" y="-200" width="760" height="800" fill="url(#sky${id})"/>
+  <path d="M-200 258 q130 -30 210 -12 q80 22 160 2 q110 -14 190 -4 V420 H-200 Z" fill="${c.point}" opacity=".16"/>
   <!-- neck -->
   <path d="M60 300 q6 -96 56 -132 l62 22 q-22 60 -18 110 Z" fill="url(#coat${id})"/>
   <!-- mane -->
